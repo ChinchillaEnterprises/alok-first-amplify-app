@@ -1,39 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource";
+import { useState } from "react";
 import "./../app/app.css";
-import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
-import "@aws-amplify/ui-react/styles.css";
-
-Amplify.configure(outputs);
-
-const client = generateClient<Schema>();
 
 export default function App() {
-  const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
-
-  function listTodos() {
-    client.models.Todo.observeQuery().subscribe({
-      next: (data) => setTodos([...data.items]),
-    });
-  }
-
-  useEffect(() => {
-    listTodos();
-  }, []);
+  const [todos, setTodos] = useState<Array<{ id: number; content: string }>>([
+    { id: 1, content: "Learn AWS Amplify" },
+    { id: 2, content: "Build my first app" },
+    { id: 3, content: "Deploy to the cloud" }
+  ]);
 
   function createTodo() {
-    client.models.Todo.create({
-      content: window.prompt("Todo content"),
-    });
+    const content = window.prompt("Todo content");
+    if (content) {
+      setTodos([...todos, { id: Date.now(), content }]);
+    }
   }
 
   return (
     <main>
-      <h1>My todos</h1>
+      <h1>Alok's First Amplify App</h1>
+      <h2>My todos</h2>
       <button onClick={createTodo}>+ new</button>
       <ul>
         {todos.map((todo) => (
@@ -41,11 +28,9 @@ export default function App() {
         ))}
       </ul>
       <div>
-        🥳 App successfully hosted. Try creating a new todo.
+        🥳 Welcome to Chinchilla Academy Day 3!
         <br />
-        <a href="https://docs.amplify.aws/nextjs/start/quickstart/nextjs-app-router-client-components/">
-          Review next steps of this tutorial.
-        </a>
+        This is your first AWS Amplify app deployed to the cloud.
       </div>
     </main>
   );
