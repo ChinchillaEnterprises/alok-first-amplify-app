@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audi Infotainment System</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body>
+    <div class="infotainment-container">
+        <header class="top-bar">
+            <div class="status-left">
+                <span class="time" id="time">12:00 PM</span>
+                <span class="date" id="date">Mon, Jan 1</span>
+            </div>
+            <div class="status-center">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Audi-Logo_2016.svg/200px-Audi-Logo_2016.svg.png" alt="Audi" class="audi-logo">
+            </div>
+            <div class="status-right">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-bluetooth"></i>
+                <i class="fas fa-wifi"></i>
+                <span class="temp">72°F</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="content-area">
+                <!-- Home Screen -->
+                <div class="screen active" id="home-screen">
+                    <div class="home-container">
+                        <div class="car-viewer-section">
+                            <div class="car-3d-container" id="car-3d-container">
+                                <div class="loading-indicator">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <p>Loading 3D Model...</p>
+                                </div>
+                                <div class="controls-hint">
+                                    <p><i class="fas fa-mouse"></i> Drag to rotate • Scroll to zoom • Right-click to pan</p>
+                                </div>
+                            </div>
+                            <div class="car-controls">
+                                <div class="view-buttons">
+                                    <button class="view-btn" data-view="front">Front</button>
+                                    <button class="view-btn" data-view="side">Side</button>
+                                    <button class="view-btn" data-view="rear">Rear</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Screen -->
+                <div class="screen" id="navigation-screen">
+                    <div class="navigation-container">
+                        <div class="search-bar">
+                            <input type="text" placeholder="Search destination..." class="search-input">
+                            <button class="search-btn"><i class="fas fa-search"></i></button>
+                            <button class="navigate-btn" id="navigate-btn" style="display: none;">
+                                <i class="fas fa-directions"></i> Go
+                            </button>
+                        </div>
+                        <div class="map-area" id="map">
+                            <div class="map-placeholder">
+                                <i class="fas fa-map fa-3x"></i>
+                                <p>Loading Map...</p>
+                            </div>
+                        </div>
+                        <div class="nav-controls">
+                            <button class="control-btn"><i class="fas fa-plus"></i></button>
+                            <button class="control-btn"><i class="fas fa-minus"></i></button>
+                            <button class="control-btn"><i class="fas fa-location-crosshairs"></i></button>
+                            <button class="control-btn"><i class="fas fa-compass"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Screen -->
+                <div class="screen" id="media-screen">
+                    <div class="media-container">
+                        <div class="media-sources">
+                            <button class="source-btn active">Radio</button>
+                            <button class="source-btn">Bluetooth</button>
+                            <button class="source-btn">USB</button>
+                            <button class="source-btn">Spotify</button>
+                        </div>
+                        <div class="now-playing">
+                            <div class="album-art">
+                                <i class="fas fa-music fa-4x"></i>
+                            </div>
+                            <div class="track-info">
+                                <h2>No Track Playing</h2>
+                                <p>Select a source</p>
+                            </div>
+                        </div>
+                        <div class="playback-controls">
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                            <div class="control-buttons">
+                                <button class="media-btn"><i class="fas fa-random"></i></button>
+                                <button class="media-btn"><i class="fas fa-step-backward"></i></button>
+                                <button class="media-btn main-btn"><i class="fas fa-play"></i></button>
+                                <button class="media-btn"><i class="fas fa-step-forward"></i></button>
+                                <button class="media-btn"><i class="fas fa-repeat"></i></button>
+                            </div>
+                            <div class="volume-control">
+                                <i class="fas fa-volume-down"></i>
+                                <input type="range" class="volume-slider" min="0" max="100" value="50">
+                                <i class="fas fa-volume-up"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Climate Screen -->
+                <div class="screen" id="climate-screen">
+                    <div class="climate-container">
+                        <div class="climate-zones">
+                            <div class="climate-zone">
+                                <h3>Driver</h3>
+                                <div class="temp-display">
+                                    <button class="temp-btn"><i class="fas fa-minus"></i></button>
+                                    <span class="temp-value">72°F</span>
+                                    <button class="temp-btn"><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div class="seat-controls">
+                                    <button class="seat-btn"><i class="fas fa-fire"></i> Heated</button>
+                                    <button class="seat-btn"><i class="fas fa-snowflake"></i> Cooled</button>
+                                </div>
+                            </div>
+                            <div class="climate-zone">
+                                <h3>Passenger</h3>
+                                <div class="temp-display">
+                                    <button class="temp-btn"><i class="fas fa-minus"></i></button>
+                                    <span class="temp-value">72°F</span>
+                                    <button class="temp-btn"><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div class="seat-controls">
+                                    <button class="seat-btn"><i class="fas fa-fire"></i> Heated</button>
+                                    <button class="seat-btn"><i class="fas fa-snowflake"></i> Cooled</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="climate-controls">
+                            <button class="climate-btn active" id="auto-btn">AUTO</button>
+                            <button class="climate-btn" id="ac-btn">A/C</button>
+                            <button class="climate-btn" id="dual-btn">DUAL</button>
+                            <button class="climate-btn" id="recirc-btn">Recirculate</button>
+                            <button class="climate-btn" id="defrost-btn">Defrost</button>
+                            <button class="climate-btn" id="rear-defrost-btn">Rear Defrost</button>
+                        </div>
+                        <div class="fan-speed">
+                            <h3>Fan Speed</h3>
+                            <input type="range" class="fan-slider" min="0" max="10" value="5">
+                            <div class="fan-indicators">
+                                <span>Low</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Screen -->
+                <div class="screen" id="vehicle-screen">
+                    <div class="vehicle-container">
+                        <h2>Vehicle Information</h2>
+                        <div class="vehicle-stats">
+                            <div class="stat-card clickable-stat" id="odometer-card">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <h3>Odometer</h3>
+                                <p>24,532 miles</p>
+                            </div>
+                            <div class="stat-card clickable-stat" id="fuel-card">
+                                <i class="fas fa-gas-pump"></i>
+                                <h3>Fuel Level</h3>
+                                <p>85% - 420 mi range</p>
+                            </div>
+                            <div class="stat-card clickable-stat" id="oil-card">
+                                <i class="fas fa-oil-can"></i>
+                                <h3>Oil Life</h3>
+                                <p>75% - 3,750 mi</p>
+                            </div>
+                            <div class="stat-card clickable-stat" id="tire-pressure-card">
+                                <i class="fas fa-ring"></i>
+                                <h3>Tire Pressure</h3>
+                                <p>All tires OK</p>
+                            </div>
+                        </div>
+                        <div class="performance-metrics">
+                            <h3>Performance Data</h3>
+                            <div class="metrics-grid">
+                                <div class="metric-gauge">
+                                    <div class="gauge-circle" id="boost-gauge">
+                                        <span class="gauge-value">0.0</span>
+                                        <span class="gauge-unit">PSI</span>
+                                    </div>
+                                    <p>Boost Pressure</p>
+                                </div>
+                                <div class="metric-gauge">
+                                    <div class="gauge-circle" id="oil-temp-gauge">
+                                        <span class="gauge-value">180</span>
+                                        <span class="gauge-unit">°F</span>
+                                    </div>
+                                    <p>Oil Temperature</p>
+                                </div>
+                                <div class="metric-gauge">
+                                    <div class="gauge-circle" id="coolant-gauge">
+                                        <span class="gauge-value">195</span>
+                                        <span class="gauge-unit">°F</span>
+                                    </div>
+                                    <p>Coolant Temp</p>
+                                </div>
+                                <div class="metric-gauge">
+                                    <div class="gauge-circle" id="intake-gauge">
+                                        <span class="gauge-value">75</span>
+                                        <span class="gauge-unit">°F</span>
+                                    </div>
+                                    <p>Intake Air Temp</p>
+                                </div>
+                            </div>
+                            <div class="lap-timer">
+                                <h4>Lap Timer</h4>
+                                <div class="timer-display">
+                                    <span id="lap-time">00:00.00</span>
+                                    <div class="timer-controls">
+                                        <button class="timer-btn" id="start-lap">Start</button>
+                                        <button class="timer-btn" id="reset-lap">Reset</button>
+                                    </div>
+                                </div>
+                                <div class="best-lap">
+                                    <p>Best Lap: <span id="best-time">--:--:--</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phone Screen -->
+                <div class="screen" id="phone-screen">
+                    <div class="phone-container">
+                        <h2>Phone Connection</h2>
+                        <div class="connection-status">
+                            <i class="fas fa-bluetooth fa-3x"></i>
+                            <p>No device connected</p>
+                            <button class="connect-btn">Connect Device</button>
+                        </div>
+                        <div class="recent-calls">
+                            <h3>Recent Calls</h3>
+                            <div class="call-list">
+                                <p>No recent calls</p>
+                            </div>
+                        </div>
+                        <div class="contacts">
+                            <h3>Contacts</h3>
+                            <div class="contact-list">
+                                <p>Connect a device to view contacts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Screen -->
+                <div class="screen" id="settings-screen">
+                    <div class="settings-container">
+                        <h2>Settings</h2>
+                        <div class="settings-sections">
+                            <div class="settings-section">
+                                <h3>Display</h3>
+                                <div class="setting-item">
+                                    <span>Brightness <span id="brightness-value">80%</span></span>
+                                    <input type="range" class="setting-slider" id="brightness-slider" min="20" max="100" value="80">
+                                </div>
+                                <div class="setting-item">
+                                    <span>Night Mode</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="night-mode">
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <span>Theme</span>
+                                    <select class="setting-select" id="theme-select">
+                                        <option>Dark</option>
+                                        <option>Light</option>
+                                        <option>Auto</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <h3>Sound</h3>
+                                <div class="setting-item">
+                                    <span>System Volume</span>
+                                    <input type="range" class="setting-slider" min="0" max="100" value="75">
+                                </div>
+                                <div class="setting-item">
+                                    <span>Touch Sounds</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="touch-sounds" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                                <div class="setting-item">
+                                    <span>Navigation Voice</span>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <h3>Units</h3>
+                                <div class="setting-item">
+                                    <span>Temperature</span>
+                                    <select class="setting-select">
+                                        <option>Fahrenheit</option>
+                                        <option>Celsius</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <span>Distance</span>
+                                    <select class="setting-select">
+                                        <option>Miles</option>
+                                        <option>Kilometers</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="settings-section">
+                                <h3>System</h3>
+                                <div class="setting-item">
+                                    <span>Software Version</span>
+                                    <span class="setting-value">v2.1.0</span>
+                                </div>
+                                <div class="setting-item">
+                                    <span>Last Update</span>
+                                    <span class="setting-value">July 28, 2025</span>
+                                </div>
+                                <button class="setting-btn">Check for Updates</button>
+                                <button class="setting-btn">Reset to Defaults</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audi AI Screen -->
+                <div class="screen" id="audi-ai-screen">
+                    <div class="audi-ai-container">
+                        <h2>ARIA</h2>
+                        <div class="ai-interface">
+                            <div class="floating-bubbles-container" id="floating-bubbles">
+                                <!-- Floating bubbles will be dynamically generated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tire Pressure Detail Overlay -->
+            <div class="tire-pressure-overlay" id="tire-pressure-overlay">
+                <div class="tire-pressure-detail">
+                    <button class="close-overlay" id="close-tire-overlay">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2>Tire Pressure Monitor</h2>
+                    <div class="tire-diagram">
+                        <div class="tire-position" id="fl-detail">
+                            <div class="tire-box">
+                                <span class="tire-label">FL</span>
+                                <span class="tire-psi" id="fl-psi">32</span>
+                                <span class="psi-unit">PSI</span>
+                            </div>
+                        </div>
+                        <div class="tire-position" id="fr-detail">
+                            <div class="tire-box">
+                                <span class="tire-label">FR</span>
+                                <span class="tire-psi" id="fr-psi">32</span>
+                                <span class="psi-unit">PSI</span>
+                            </div>
+                        </div>
+                        <div class="tire-position" id="rl-detail">
+                            <div class="tire-box">
+                                <span class="tire-label">RL</span>
+                                <span class="tire-psi" id="rl-psi">31</span>
+                                <span class="psi-unit">PSI</span>
+                            </div>
+                        </div>
+                        <div class="tire-position" id="rr-detail">
+                            <div class="tire-box">
+                                <span class="tire-label">RR</span>
+                                <span class="tire-psi" id="rr-psi">32</span>
+                                <span class="psi-unit">PSI</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tire-info">
+                        <p class="recommended">Recommended: 30-35 PSI</p>
+                        <p class="last-check">Last checked: 2 minutes ago</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Odometer Detail Overlay -->
+            <div class="stat-overlay" id="odometer-overlay">
+                <div class="stat-detail">
+                    <button class="close-overlay">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2>Odometer</h2>
+                    <div class="stat-main-value">
+                        <span class="big-number" id="odometer-value">24,532</span>
+                        <span class="unit">miles</span>
+                    </div>
+                    <div class="stat-details">
+                        <div class="detail-item">
+                            <span class="label">Trip A</span>
+                            <span class="value">156.7 mi</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Trip B</span>
+                            <span class="value">2,341.2 mi</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Average Speed</span>
+                            <span class="value">42 mph</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Service in</span>
+                            <span class="value">7,468 miles</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fuel Level Detail Overlay -->
+            <div class="stat-overlay" id="fuel-overlay">
+                <div class="stat-detail">
+                    <button class="close-overlay">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2>Fuel Level</h2>
+                    <div class="stat-main-value">
+                        <span class="big-number">85</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="fuel-gauge">
+                        <div class="fuel-fill" style="width: 85%"></div>
+                    </div>
+                    <div class="stat-details">
+                        <div class="detail-item">
+                            <span class="label">Range</span>
+                            <span class="value">420 miles</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Tank Capacity</span>
+                            <span class="value">14.5 gallons</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Avg MPG</span>
+                            <span class="value">28.5 mpg</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Fuel Type</span>
+                            <span class="value">Premium 91</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Oil Life Detail Overlay -->
+            <div class="stat-overlay" id="oil-overlay">
+                <div class="stat-detail">
+                    <button class="close-overlay">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h2>Oil Life</h2>
+                    <div class="stat-main-value">
+                        <span class="big-number">75</span>
+                        <span class="unit">%</span>
+                    </div>
+                    <div class="oil-gauge">
+                        <div class="oil-fill" style="width: 75%"></div>
+                    </div>
+                    <div class="stat-details">
+                        <div class="detail-item">
+                            <span class="label">Miles Until Service</span>
+                            <span class="value">3,750 miles</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Last Oil Change</span>
+                            <span class="value">Oct 15, 2024</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Oil Type</span>
+                            <span class="value">0W-20 Synthetic</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Next Service</span>
+                            <span class="value">~April 2025</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-screen="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </button>
+            <button class="nav-btn" data-screen="navigation">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>Navigation</span>
+            </button>
+            <button class="nav-btn" data-screen="media">
+                <i class="fas fa-music"></i>
+                <span>Media</span>
+            </button>
+            <button class="nav-btn" data-screen="climate">
+                <i class="fas fa-temperature-half"></i>
+                <span>Climate</span>
+            </button>
+            <button class="nav-btn" data-screen="vehicle">
+                <i class="fas fa-car"></i>
+                <span>Vehicle</span>
+            </button>
+            <button class="nav-btn" data-screen="phone">
+                <i class="fas fa-phone"></i>
+                <span>Phone</span>
+            </button>
+            <button class="nav-btn" data-screen="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </button>
+            <button class="nav-btn" data-screen="audi-ai">
+                <i class="fas fa-robot"></i>
+                <span>Audi AI</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="js/core/app.js"></script>
+    <script src="js/screens/home.js"></script>
+    <script src="js/screens/navigation.js"></script>
+    <script src="js/screens/media.js"></script>
+    <script src="js/systems/audio.js"></script>
+    <script src="js/systems/aria.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdZFsfuPkRJsoF5SehNFzGKphxOm9irwY&callback=initMap&libraries=places"></script>
+</body>
+</html>
