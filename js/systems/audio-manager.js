@@ -15,7 +15,7 @@ class AudioManager {
     loadTouchSoundPreference() {
         // Try to load from current driver profile
         if (window.driverProfileManager) {
-            const currentDriver = window.driverProfileManager.getCurrentDriver();
+            const currentDriver = window.driverProfileManager.getCurrentDriver() || 'guest';
             if (currentDriver && window.driverProfileManager.profiles[currentDriver]) {
                 const profile = window.driverProfileManager.profiles[currentDriver];
                 this.touchSoundsEnabled = profile.preferences.system.keyClickSound;
@@ -28,6 +28,9 @@ class AudioManager {
         const saved = localStorage.getItem('audi_touch_sounds');
         if (saved !== null) {
             this.touchSoundsEnabled = saved === 'true';
+        } else {
+            // Default to enabled for web version
+            this.touchSoundsEnabled = true;
         }
     }
     

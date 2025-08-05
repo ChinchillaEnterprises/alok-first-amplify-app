@@ -724,6 +724,23 @@
             // For web version, skip driver selection and use guest mode
             if (!currentDriver) {
                 localStorage.setItem('audi_current_driver', 'guest');
+                // Set guest as current driver in profile manager
+                if (window.driverProfileManager) {
+                    window.driverProfileManager.setCurrentDriver('guest');
+                }
+                // Reload audio manager preferences for guest
+                if (window.audioManager) {
+                    window.audioManager.loadTouchSoundPreference();
+                }
+            } else if (currentDriver === 'guest') {
+                // Ensure guest profile is active
+                if (window.driverProfileManager) {
+                    window.driverProfileManager.setCurrentDriver('guest');
+                }
+                // Reload audio manager preferences for guest
+                if (window.audioManager) {
+                    window.audioManager.loadTouchSoundPreference();
+                }
             }
             if (currentDriver && currentDriver !== 'guest') {
                 // Load the driver's profile

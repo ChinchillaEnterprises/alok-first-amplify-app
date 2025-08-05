@@ -4,7 +4,8 @@ class DriverProfileManager {
         this.currentDriver = null;
         this.profiles = {
             driver1: this.loadProfile('driver1') || this.getDefaultProfile('Driver 1'),
-            driver2: this.loadProfile('driver2') || this.getDefaultProfile('Driver 2')
+            driver2: this.loadProfile('driver2') || this.getDefaultProfile('Driver 2'),
+            guest: this.loadProfile('guest') || this.getGuestProfile()
         };
     }
     
@@ -62,6 +63,74 @@ class DriverProfileManager {
                 system: {
                     language: 'en',
                     keyClickSound: false,
+                    startupSound: true,
+                    navigationVoice: true,
+                    systemVolume: 75
+                }
+            },
+            
+            // Last state when driver exited
+            lastState: {
+                lastScreen: 'home',
+                timestamp: new Date().toISOString()
+            }
+        };
+    }
+    
+    getGuestProfile() {
+        return {
+            name: 'Guest',
+            preferences: {
+                // Climate settings
+                climate: {
+                    driverTemp: 72,
+                    passengerTemp: 72,
+                    fanSpeed: 5,
+                    auto: true,
+                    ac: true,
+                    dualZone: false,
+                    seatHeatDriver: false,
+                    seatCoolDriver: false,
+                    seatHeatPassenger: false,
+                    seatCoolPassenger: false
+                },
+                
+                // Media settings
+                media: {
+                    lastSource: 'Radio',
+                    volume: 50,
+                    lastRadioStation: 0,
+                    favoriteStations: [],
+                    touchSounds: true
+                },
+                
+                // Display settings
+                display: {
+                    brightness: 80,
+                    nightMode: false,
+                    theme: 'dark'
+                },
+                
+                // Navigation
+                navigation: {
+                    homeAddress: '',
+                    workAddress: '',
+                    recentDestinations: []
+                },
+                
+                // Vehicle
+                vehicle: {
+                    preferredUnits: 'imperial',
+                    driveMode: 'comfort',
+                    temperatureUnit: 'Fahrenheit',
+                    distanceUnit: 'Miles',
+                    bestLapTime: null
+                },
+                
+                // System - Enable touch sounds for web version
+                system: {
+                    language: 'en',
+                    keyClickSound: true,  // Enable by default for guest/web
                     startupSound: true,
                     navigationVoice: true,
                     systemVolume: 75
