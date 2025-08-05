@@ -10,8 +10,132 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        /* Startup Animation Styles */
+        #startup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #startup-overlay.hidden {
+            opacity: 0;
+            transition: opacity 1s ease-out;
+            pointer-events: none;
+        }
+
+        #stars-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: fly 0.5s linear infinite;
+        }
+
+        @keyframes fly {
+            from {
+                transform: translateZ(0px);
+                opacity: 1;
+            }
+            to {
+                transform: translateZ(1000px);
+                opacity: 0;
+            }
+        }
+
+        #audi-logo-container {
+            position: relative;
+            opacity: 0;
+            animation: fadeIn 2s ease-in forwards;
+            animation-delay: 1s;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #audi-rings {
+            width: 220px;
+            height: 90px;
+            position: relative;
+            filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.5));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .ring {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border: 6px solid #fff;
+            border-radius: 50%;
+        }
+
+        .ring:nth-child(1) { left: 10px; }
+        .ring:nth-child(2) { left: 50px; }
+        .ring:nth-child(3) { left: 90px; }
+        .ring:nth-child(4) { left: 130px; }
+
+        #audi-text {
+            font-size: 32px;
+            font-weight: 300;
+            letter-spacing: 8px;
+            color: #fff;
+            text-transform: uppercase;
+            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.5));
+            padding-left: 8px;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Hide main content initially */
+        .infotainment-container {
+            opacity: 0;
+            transition: opacity 1s ease-in;
+        }
+
+        .infotainment-container.visible {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
+    <!-- Startup Animation Overlay -->
+    <div id="startup-overlay">
+        <div id="stars-container"></div>
+        <div id="audi-logo-container">
+            <div id="audi-rings">
+                <div class="ring"></div>
+                <div class="ring"></div>
+                <div class="ring"></div>
+                <div class="ring"></div>
+            </div>
+            <div id="audi-text">AUDI</div>
+        </div>
+    </div>
     <div class="infotainment-container">
         <header class="top-bar">
             <div class="status-left">
@@ -597,13 +721,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Check if a driver was selected
             const currentDriver = localStorage.getItem('audi_current_driver');
-            if (!currentDriver || currentDriver === 'guest') {
-                // If no driver selected or guest, redirect to driver selection
-                if (currentDriver !== 'guest') {
-                    window.location.href = 'driver-select.html';
-                    return;
-                }
-            } else {
+            // For web version, skip driver selection and use guest mode
+            if (!currentDriver) {
+                localStorage.setItem('audi_current_driver', 'guest');
+            }
+            if (currentDriver && currentDriver !== 'guest') {
                 // Load the driver's profile
                 setTimeout(() => {
                     window.driverProfileManager.setCurrentDriver(currentDriver);
@@ -663,6 +785,37 @@
                 alert('Profile settings saved successfully!');
             }
         }
+    </script>
+    
+    <!-- Startup Animation Script -->
+    <script>
+        // Create starfield effect
+        const starsContainer = document.getElementById('stars-container');
+        const numberOfStars = 400;
+
+        for (let i = 0; i < numberOfStars; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 0.5 + 's';
+            star.style.animationDuration = (Math.random() * 0.3 + 0.4) + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Hide startup overlay and show main content after animation
+        setTimeout(() => {
+            const startupOverlay = document.getElementById('startup-overlay');
+            const infotainmentContainer = document.querySelector('.infotainment-container');
+            
+            startupOverlay.classList.add('hidden');
+            infotainmentContainer.classList.add('visible');
+            
+            // Remove overlay from DOM after fade out
+            setTimeout(() => {
+                startupOverlay.remove();
+            }, 1000);
+        }, 4000); // Show animation for 4 seconds
     </script>
 </body>
 </html>
