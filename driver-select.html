@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audi - Driver Selection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        .driver-selection-container {
+            text-align: center;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 60px;
+            letter-spacing: 2px;
+            opacity: 0.9;
+        }
+        
+        .drivers {
+            display: flex;
+            gap: 80px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .driver-button {
+            width: 200px;
+            height: 200px;
+            background: #ff0000;
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .driver-button:hover {
+            transform: scale(1.05);
+            background: #ff2222;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+        
+        .driver-button:active {
+            transform: scale(0.98);
+        }
+        
+        .driver-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+        
+        .driver-name {
+            font-size: 22px;
+            font-weight: 400;
+        }
+        
+        .last-login {
+            font-size: 12px;
+            opacity: 0.7;
+            position: absolute;
+            bottom: 15px;
+            left: 0;
+            right: 0;
+        }
+        
+        /* Ripple effect */
+        .driver-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .driver-button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #ff0000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+        
+        .guest-mode {
+            margin-top: 60px;
+            opacity: 0.5;
+            font-size: 14px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        
+        .guest-mode:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="driver-selection-container">
+        <h1 class="title">SELECT DRIVER</h1>
+        
+        <div class="drivers">
+            <button class="driver-button" onclick="selectDriver('driver1')">
+                <div class="driver-icon">👤</div>
+                <div class="driver-name">DRIVER 1</div>
+                <div class="last-login" id="driver1-last"></div>
+            </button>
+            
+            <button class="driver-button" onclick="selectDriver('driver2')">
+                <div class="driver-icon">👤</div>
+                <div class="driver-name">DRIVER 2</div>
+                <div class="last-login" id="driver2-last"></div>
+            </button>
+        </div>
+        
+        <div class="guest-mode" onclick="selectDriver('guest')">
+            Continue as Guest
+        </div>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loadingText">Loading Profile...</div>
+        </div>
+    </div>
+    
+    <script>
+        // Check for existing profiles and show last login
+        function checkProfiles() {
+            const driver1 = localStorage.getItem('audi_profile_driver1');
+            const driver2 = localStorage.getItem('audi_profile_driver2');
+            
+            if (driver1) {
+                const profile1 = JSON.parse(driver1);
+                const lastLogin1 = profile1.lastState?.timestamp;
+                if (lastLogin1) {
+                    const date = new Date(lastLogin1);
+                    const timeAgo = getTimeAgo(date);
+                    document.getElementById('driver1-last').textContent = `Last: ${timeAgo}`;
+                }
+            }
+            
+            if (driver2) {
+                const profile2 = JSON.parse(driver2);
+                const lastLogin2 = profile2.lastState?.timestamp;
+                if (lastLogin2) {
+                    const date = new Date(lastLogin2);
+                    const timeAgo = getTimeAgo(date);
+                    document.getElementById('driver2-last').textContent = `Last: ${timeAgo}`;
+                }
+            }
+        }
+        
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days === 1) return 'Yesterday';
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
+        }
+        
+        function selectDriver(driverId) {
+            const overlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            
+            // Show loading overlay
+            overlay.classList.add('active');
+            
+            // Update loading text based on driver
+            if (driverId === 'guest') {
+                loadingText.textContent = 'Starting Guest Mode...';
+                localStorage.setItem('audi_current_driver', 'guest');
+            } else {
+                const driverNum = driverId === 'driver1' ? '1' : '2';
+                loadingText.textContent = `Welcome Back, Driver ${driverNum}`;
+                localStorage.setItem('audi_current_driver', driverId);
+            }
+            
+            // Add a slight delay for the animation
+            setTimeout(() => {
+                // In Electron, redirect to main interface
+                if (window.require) {
+                    window.location.href = './index.html';
+                } else {
+                    // For web version
+                    window.location.href = 'index.html';
+                }
+            }, 1500);
+        }
+        
+        // Check profiles on load
+        checkProfiles();
+        
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') selectDriver('driver1');
+            if (e.key === '2') selectDriver('driver2');
+            if (e.key === 'g' || e.key === 'G') selectDriver('guest');
+        });
+    </script>
+</body>
+</html>

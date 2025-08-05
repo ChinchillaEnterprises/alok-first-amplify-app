@@ -118,6 +118,11 @@ class InternetRadio {
         this.currentStationIndex = index;
         const station = this.stations[index];
         
+        // Save to driver profile
+        if (window.driverProfileManager) {
+            window.driverProfileManager.saveCurrentState();
+        }
+        
         try {
             // Stop current stream
             this.audio.pause();
@@ -350,3 +355,21 @@ class InternetRadio {
 
 // Initialize when needed
 window.internetRadio = new InternetRadio();
+
+// Make radio player accessible globally
+window.radioPlayer = window.internetRadio;
+
+// Load saved station when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (window.driverProfileManager) {
+            const currentDriver = window.driverProfileManager.getCurrentDriver();
+            const profile = window.driverProfileManager.profiles[currentDriver];
+            if (profile && profile.preferences.media.lastRadioStation !== undefined) {
+                const savedStation = profile.preferences.media.lastRadioStation;
+                window.internetRadio.currentStationIndex = savedStation;
+                window.internetRadio.showStation(savedStation);
+            }
+        }
+    }, 1000); // Delay to ensure profile is loaded
+});

@@ -174,10 +174,6 @@ sourceBtns.forEach(btn => {
                 trackInfo.textContent = 'Waiting for device...';
                 trackArtist.textContent = 'Connect your phone';
                 break;
-            case 'USB':
-                trackInfo.textContent = 'No USB connected';
-                trackArtist.textContent = 'Insert USB device';
-                break;
             case 'Spotify':
                 trackInfo.textContent = 'Spotify Premium';
                 trackArtist.textContent = 'Sign in to continue';
@@ -188,82 +184,21 @@ sourceBtns.forEach(btn => {
 
 // Removed widget click handlers - widgets no longer exist
 
-// Sound System
-class SoundManager {
-    constructor() {
-        // Create audio context
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        this.enabled = true;
-        
-        // Load saved sound preference
-        const savedSoundState = localStorage.getItem('touchSounds');
-        this.enabled = savedSoundState !== 'false';
-    }
-    
-    playClick() {
-        if (!this.enabled) return;
-        
-        try {
-            // Create a simple click sound using Web Audio API
-            const oscillator = this.audioContext.createOscillator();
-            const gainNode = this.audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(this.audioContext.destination);
-            
-            oscillator.frequency.value = 1000; // Frequency in Hz
-            oscillator.type = 'sine';
-            
-            gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
-            
-            oscillator.start(this.audioContext.currentTime);
-            oscillator.stop(this.audioContext.currentTime + 0.1);
-        } catch (error) {
-            console.log('Audio playback failed:', error);
+// Sound effects are now handled by audio-manager.js
+// Keep soundManager reference for compatibility
+const soundManager = {
+    enabled: true,
+    setEnabled: function(enabled) {
+        if (window.audioManager) {
+            window.audioManager.setTouchSoundsEnabled(enabled);
         }
+    },
+    playClick: function() {
+        // Handled by audio-manager.js
     }
-    
-    playBeep() {
-        if (!this.enabled) return;
-        
-        try {
-            const oscillator = this.audioContext.createOscillator();
-            const gainNode = this.audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(this.audioContext.destination);
-            
-            oscillator.frequency.value = 800;
-            oscillator.type = 'square';
-            
-            gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.05);
-            
-            oscillator.start(this.audioContext.currentTime);
-            oscillator.stop(this.audioContext.currentTime + 0.05);
-        } catch (error) {
-            console.log('Audio playback failed:', error);
-        }
-    }
-    
-    setEnabled(enabled) {
-        this.enabled = enabled;
-        localStorage.setItem('touchSounds', enabled);
-    }
-}
+};
 
-// Initialize sound manager
-const soundManager = new SoundManager();
-
-// Add click sound to ALL clickable elements
-document.addEventListener('click', (e) => {
-    // Check if clicked element is any type of button or has button-like behavior
-    if (e.target.matches('button, input[type="checkbox"], input[type="range"], select, .toggle-switch, .toggle-slider, .clickable-stat') || 
-        e.target.closest('button, .nav-btn, .toggle-switch, .clickable-stat')) {
-        soundManager.playClick();
-    }
-});
+// Click sounds are now handled by audio-manager.js
 
 // Add hover effects to interactive elements (visual only, no sound)
 const allButtons = document.querySelectorAll('button');
@@ -441,7 +376,7 @@ setInterval(updateTirePressure, 5000);
 // Lap Timer Functionality
 let lapTimerInterval;
 let startTime;
-let bestLapTime = null;
+window.bestLapTime = null; // Make it global so driver profiles can access it
 
 const lapTimeDisplay = document.getElementById('lap-time');
 const startLapBtn = document.getElementById('start-lap');
@@ -471,9 +406,14 @@ if (startLapBtn && resetLapBtn) {
             
             // Check if this is the best lap
             const currentTime = lapTimeDisplay.textContent;
-            if (!bestLapTime || currentTime < bestLapTime) {
-                bestLapTime = currentTime;
-                bestTimeDisplay.textContent = bestLapTime;
+            if (!window.bestLapTime || currentTime < window.bestLapTime) {
+                window.bestLapTime = currentTime;
+                bestTimeDisplay.textContent = window.bestLapTime;
+                
+                // Save to driver profile
+                if (window.driverProfileManager) {
+                    window.driverProfileManager.saveCurrentState();
+                }
             }
         }
     });
@@ -483,6 +423,15 @@ if (startLapBtn && resetLapBtn) {
         lapTimeDisplay.textContent = '00:00.00';
         startLapBtn.textContent = 'Start';
         startLapBtn.classList.remove('active');
+        
+        // Also reset best lap time
+        window.bestLapTime = null;
+        bestTimeDisplay.textContent = '--:--:--';
+        
+        // Save to driver profile
+        if (window.driverProfileManager) {
+            window.driverProfileManager.saveCurrentState();
+        }
     });
 }
 
@@ -546,16 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Touch Sounds Toggle
-    const touchSoundsToggle = document.getElementById('touch-sounds');
-    if (touchSoundsToggle) {
-        // Set initial state
-        touchSoundsToggle.checked = soundManager.enabled;
-        
-        touchSoundsToggle.addEventListener('change', (e) => {
-            soundManager.setEnabled(e.target.checked);
-        });
-    }
+    // Touch Sounds Toggle is now handled by settings.js
     
     // Brightness Control
     const brightnessSlider = document.getElementById('brightness-slider');

@@ -66,6 +66,20 @@ class MediaPlayer {
                 btn.classList.add('active');
             }
         });
+        
+        // Restore buttons when leaving radio
+        if (source !== 'radio') {
+            const shuffleBtn = document.querySelector('.media-btn:nth-child(1)');
+            const repeatBtn = document.querySelector('.media-btn:nth-child(5)');
+            const progressBar = document.querySelector('.progress');
+            
+            if (shuffleBtn) shuffleBtn.style.visibility = 'visible';
+            if (repeatBtn) repeatBtn.style.visibility = 'visible';
+            if (progressBar) {
+                progressBar.style.width = '0%';
+                progressBar.style.background = '';
+            }
+        }
 
         // Handle source switching
         switch(source) {
@@ -77,9 +91,6 @@ class MediaPlayer {
                 break;
             case 'bluetooth':
                 this.showBluetoothInterface();
-                break;
-            case 'usb':
-                this.showUSBInterface();
                 break;
         }
     }
@@ -155,19 +166,35 @@ class MediaPlayer {
 
 
     showRadioInterface() {
-        const nowPlaying = document.querySelector('.now-playing');
-        const station = this.radioStations[this.currentStation];
+        // Initialize internet radio if not already done
+        if (!window.internetRadio) {
+            const script = document.createElement('script');
+            script.src = 'js/screens/radio.js';
+            script.onload = () => {
+                window.internetRadio.loadStation(0);
+                this.updateRadioButtons();
+            };
+            document.body.appendChild(script);
+        } else {
+            window.internetRadio.updateDisplay(window.internetRadio.stations[window.internetRadio.currentStationIndex]);
+            this.updateRadioButtons();
+        }
+    }
+    
+    updateRadioButtons() {
+        // Hide shuffle and repeat buttons for radio
+        const shuffleBtn = document.querySelector('.media-btn:nth-child(1)');
+        const repeatBtn = document.querySelector('.media-btn:nth-child(5)');
         
-        nowPlaying.innerHTML = `
-            <div class="album-art" style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                <i class="fas fa-radio fa-4x" style="margin-bottom: 20px;"></i>
-                <h3>${station.name}</h3>
-            </div>
-            <div class="track-info">
-                <h2>${station.name}</h2>
-                <p>Local Radio Station</p>
-            </div>
-        `;
+        if (shuffleBtn) shuffleBtn.style.visibility = 'hidden';
+        if (repeatBtn) repeatBtn.style.visibility = 'hidden';
+        
+        // Always make progress bar solid red for radio
+        const progressBar = document.querySelector('.progress');
+        if (progressBar) {
+            progressBar.style.width = '100%';
+            progressBar.style.background = '#ff0000';
+        }
     }
 
     showBluetoothInterface() {
@@ -188,32 +215,14 @@ class MediaPlayer {
         `;
     }
 
-    showUSBInterface() {
-        // Use the local music player for USB
-        if (window.mediaPlayer.localMusic) {
-            window.mediaPlayer.localMusic.loadTrack(0);
-            window.mediaPlayer.localMusic.updateDisplay(window.mediaPlayer.localMusic.tracks[0]);
-        } else {
-            const nowPlaying = document.querySelector('.now-playing');
-            nowPlaying.innerHTML = `
-                <div class="album-art" style="display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-usb fa-4x"></i>
-                </div>
-                <div class="track-info">
-                    <h2>USB Media</h2>
-                    <p>Loading music...</p>
-                </div>
-            `;
-        }
-    }
 
     async togglePlayback() {
         this.isPlaying = !this.isPlaying;
         this.updatePlayButton();
         
-        // For USB/Local music
-        if (this.currentSource === 'usb' && window.mediaPlayer.localMusic) {
-            window.mediaPlayer.localMusic.togglePlayback();
+        // Handle different sources
+        if (this.currentSource === 'radio' && window.internetRadio) {
+            window.internetRadio.togglePlayback();
         }
     }
 
@@ -225,27 +234,21 @@ class MediaPlayer {
     }
 
     async previous() {
-        if (this.currentSource === 'radio') {
-            this.currentStation = (this.currentStation - 1 + this.radioStations.length) % this.radioStations.length;
-            this.showRadioInterface();
-        } else if (this.currentSource === 'usb' && window.mediaPlayer.localMusic) {
-            window.mediaPlayer.localMusic.previous();
+        if (this.currentSource === 'radio' && window.internetRadio) {
+            window.internetRadio.previousStation();
         }
     }
 
     async next() {
-        if (this.currentSource === 'radio') {
-            this.currentStation = (this.currentStation + 1) % this.radioStations.length;
-            this.showRadioInterface();
-        } else if (this.currentSource === 'usb' && window.mediaPlayer.localMusic) {
-            window.mediaPlayer.localMusic.next();
+        if (this.currentSource === 'radio' && window.internetRadio) {
+            window.internetRadio.nextStation();
         }
     }
 
     async setVolume(value) {
         console.log('Volume:', value);
-        if (this.currentSource === 'usb' && window.mediaPlayer.localMusic) {
-            window.mediaPlayer.localMusic.setVolume(value);
+        if (this.currentSource === 'radio' && window.internetRadio) {
+            window.internetRadio.setVolume(value);
         }
     }
 

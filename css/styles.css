@@ -87,6 +87,40 @@ body[data-theme="light"] input[type="range"]::-webkit-slider-track {
     background: rgba(0, 0, 0, 0.1);
 }
 
+body[data-theme="light"] .setting-slider,
+body[data-theme="light"] .volume-slider,
+body[data-theme="light"] .fan-slider {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+body[data-theme="light"] .setting-slider::-webkit-slider-thumb,
+body[data-theme="light"] .volume-slider::-webkit-slider-thumb,
+body[data-theme="light"] .fan-slider::-webkit-slider-thumb {
+    background: #ff0000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body[data-theme="light"] .media-btn {
+    color: #000;
+    background: none;
+    border: none;
+}
+
+body[data-theme="light"] .media-btn:hover {
+    opacity: 0.7;
+}
+
+body[data-theme="light"] .media-btn.main-btn {
+    background: #ff0000;
+    color: #fff;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 body[data-theme="light"] .setting-select {
     background: white;
     border-color: #ccc;
@@ -99,6 +133,14 @@ body[data-theme="light"] .setting-select option {
 
 body[data-theme="light"] .toggle-slider {
     background-color: rgba(0, 0, 0, 0.2);
+}
+
+body[data-theme="light"] .volume-control {
+    color: #000;
+}
+
+body[data-theme="light"] .volume-control i {
+    color: #000;
 }
 
 body[data-theme="light"] .setting-item {
@@ -790,9 +832,31 @@ body[data-theme="light"] .car-outline {
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* Heated seat - Red */
+.seat-btn.active:has(.fa-fire) {
+    background: #ff0000 !important;
+    border-color: #ff0000 !important;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+/* Cooled seat - Blue */
+.seat-btn.active:has(.fa-snowflake) {
+    background: #0066ff !important;
+    border-color: #0066ff !important;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+/* Fallback for browsers without :has() support */
+.seat-btn.active-heated {
+    background: #ff0000 !important;
+    border-color: #ff0000 !important;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
 .seat-btn.active-cooled {
     background: #0066ff !important;
     border-color: #0066ff !important;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
 }
 
 .climate-controls {

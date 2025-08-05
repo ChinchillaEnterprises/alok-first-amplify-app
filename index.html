@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audi Infotainment System - v2</title>
+    <title>Audi Infotainment System</title>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -243,24 +243,7 @@
                 <!-- Phone Screen -->
                 <div class="screen" id="phone-screen">
                     <div class="phone-container">
-                        <h2>Phone Connection</h2>
-                        <div class="connection-status">
-                            <i class="fas fa-bluetooth fa-3x"></i>
-                            <p>No device connected</p>
-                            <button class="connect-btn">Connect Device</button>
-                        </div>
-                        <div class="recent-calls">
-                            <h3>Recent Calls</h3>
-                            <div class="call-list">
-                                <p>No recent calls</p>
-                            </div>
-                        </div>
-                        <div class="contacts">
-                            <h3>Contacts</h3>
-                            <div class="contact-list">
-                                <p>Connect a device to view contacts</p>
-                            </div>
-                        </div>
+                        <!-- Phone content will be dynamically loaded -->
                     </div>
                 </div>
 
@@ -269,6 +252,16 @@
                     <div class="settings-container">
                         <h2>Settings</h2>
                         <div class="settings-sections">
+                            <div class="settings-section">
+                                <h3>Driver Profile</h3>
+                                <div class="setting-item">
+                                    <span>Current Driver</span>
+                                    <span class="setting-value" id="current-driver-display">Driver 1</span>
+                                </div>
+                                <button class="setting-btn" onclick="switchDriver()">Switch Driver</button>
+                                <button class="setting-btn" onclick="saveProfileNow()">Save Current Settings</button>
+                            </div>
+                            
                             <div class="settings-section">
                                 <h3>Display</h3>
                                 <div class="setting-item">
@@ -301,14 +294,14 @@
                                 <div class="setting-item">
                                     <span>Touch Sounds</span>
                                     <label class="toggle-switch">
-                                        <input type="checkbox" id="touch-sounds" checked>
+                                        <input type="checkbox" id="touch-sounds">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </div>
                                 <div class="setting-item">
                                     <span>Navigation Voice</span>
                                     <label class="toggle-switch">
-                                        <input type="checkbox" checked>
+                                        <input type="checkbox" id="nav-voice">
                                         <span class="toggle-slider"></span>
                                     </label>
                                 </div>
@@ -318,16 +311,16 @@
                                 <h3>Units</h3>
                                 <div class="setting-item">
                                     <span>Temperature</span>
-                                    <select class="setting-select">
-                                        <option>Fahrenheit</option>
-                                        <option>Celsius</option>
+                                    <select class="setting-select" id="temp-unit-select">
+                                        <option value="Fahrenheit">Fahrenheit</option>
+                                        <option value="Celsius">Celsius</option>
                                     </select>
                                 </div>
                                 <div class="setting-item">
                                     <span>Distance</span>
-                                    <select class="setting-select">
-                                        <option>Miles</option>
-                                        <option>Kilometers</option>
+                                    <select class="setting-select" id="distance-unit-select">
+                                        <option value="Miles">Miles</option>
+                                        <option value="Kilometers">Kilometers</option>
                                     </select>
                                 </div>
                             </div>
@@ -551,9 +544,125 @@
     <script src="js/screens/media.js"></script>
     <script src="js/screens/radio.js"></script>
     <script src="js/screens/phone.js"></script>
+    <script src="js/screens/climate.js"></script>
+    <script src="js/screens/settings.js"></script>
+    <script src="js/systems/driver-profiles.js"></script>
+    <script src="js/systems/audio-manager.js"></script>
     <script src="js/systems/audio.js"></script>
     <script src="js/systems/aria.js"></script>
-    <!-- Google Maps API - API key should be configured as environment variable in Amplify -->
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE&callback=initMap&libraries=places"></script>
+    <script src="js/systems/bluetooth-server.js"></script>
+    <!-- Google Maps API - Configure API key in .env file -->
+    <script>
+        // Global flag to check if maps loaded
+        window.mapsLoaded = false;
+        
+        // Load Google Maps with API key from server
+        fetch('http://localhost:3001/api/maps-key')
+            .then(res => res.json())
+            .then(data => {
+                if (data.apiKey) {
+                    const script = document.createElement('script');
+                    script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&callback=initMap&libraries=places`;
+                    script.async = true;
+                    script.defer = true;
+                    document.body.appendChild(script);
+                    window.mapsLoaded = true;
+                } else {
+                    console.error('No API key received from server');
+                    showMapError();
+                }
+            })
+            .catch(err => {
+                console.error('Failed to load Maps API key:', err);
+                // Fallback: Show error message
+                showMapError();
+            });
+            
+        function showMapError() {
+            const mapEl = document.getElementById('map');
+            if (mapEl) {
+                mapEl.innerHTML = `
+                    <div class="map-placeholder">
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                        <p>Unable to load map</p>
+                        <small>Make sure the backend server is running</small>
+                        <br>
+                        <small>Run: npm run server</small>
+                    </div>
+                `;
+            }
+        }
+        
+        // Initialize driver profile on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if a driver was selected
+            const currentDriver = localStorage.getItem('audi_current_driver');
+            if (!currentDriver || currentDriver === 'guest') {
+                // If no driver selected or guest, redirect to driver selection
+                if (currentDriver !== 'guest') {
+                    window.location.href = 'driver-select.html';
+                    return;
+                }
+            } else {
+                // Load the driver's profile
+                setTimeout(() => {
+                    window.driverProfileManager.setCurrentDriver(currentDriver);
+                    updateDriverDisplay();
+                    
+                    // Ensure climate manager gets the loaded state
+                    if (window.climateManager && window.climateState) {
+                        window.climateManager.loadState(window.climateState);
+                    }
+                    
+                    // Reload settings to ensure they're properly applied
+                    if (window.settingsManager) {
+                        window.settingsManager.loadSavedSettings();
+                        window.settingsManager.updateAllUI();
+                    }
+                    
+                    // Ensure audio manager gets the correct state
+                    if (window.audioManager && window.driverProfileManager) {
+                        const profile = window.driverProfileManager.profiles[currentDriver];
+                        if (profile) {
+                            window.audioManager.touchSoundsEnabled = profile.preferences.system.keyClickSound;
+                            console.log(`Applied touch sounds for ${currentDriver}:`, profile.preferences.system.keyClickSound);
+                        }
+                    }
+                }, 1000); // Increased delay to ensure all scripts are loaded
+            }
+        });
+        
+        // Driver profile functions
+        function updateDriverDisplay() {
+            const currentDriver = localStorage.getItem('audi_current_driver');
+            const displayElement = document.getElementById('current-driver-display');
+            if (displayElement) {
+                if (currentDriver === 'driver1') {
+                    displayElement.textContent = 'Driver 1';
+                } else if (currentDriver === 'driver2') {
+                    displayElement.textContent = 'Driver 2';
+                } else if (currentDriver === 'guest') {
+                    displayElement.textContent = 'Guest';
+                }
+            }
+        }
+        
+        function switchDriver() {
+            // Save current profile before switching
+            if (window.driverProfileManager) {
+                window.driverProfileManager.saveCurrentState();
+            }
+            // Redirect to driver selection
+            window.location.href = 'driver-select.html';
+        }
+        
+        function saveProfileNow() {
+            if (window.driverProfileManager) {
+                window.driverProfileManager.saveCurrentState();
+                // Show confirmation
+                alert('Profile settings saved successfully!');
+            }
+        }
+    </script>
 </body>
 </html>

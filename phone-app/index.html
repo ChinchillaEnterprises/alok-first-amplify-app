@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audi S5 - Phone Connection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #000;
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo img {
+            width: 100px;
+            filter: brightness(0) invert(1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+        
+        .pairing-form {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+        }
+        
+        .code-input {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .code-digit {
+            width: 50px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .code-digit:focus {
+            outline: none;
+            border-color: #ff0000;
+        }
+        
+        .connect-btn {
+            width: 100%;
+            padding: 15px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .connect-btn:hover {
+            background: #cc0000;
+        }
+        
+        .connect-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .error {
+            color: #ff0000;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .success {
+            color: #00ff00;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .phone-interface {
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            background: #ff0000;
+        }
+        
+        .tab-content {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 15px;
+            min-height: 400px;
+        }
+        
+        .contact-list, .call-log {
+            list-style: none;
+        }
+        
+        .contact-item, .call-item {
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .call-btn {
+            background: #00ff00;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        
+        .message-list {
+            list-style: none;
+        }
+        
+        .message-thread {
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .disconnect-btn {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,0,0,0.5);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>Audi S5 Infotainment</h1>
+        </div>
+        
+        <div class="pairing-form" id="pairingForm">
+            <h2>Enter Pairing Code</h2>
+            <p style="text-align: center; margin-bottom: 20px; opacity: 0.7;">
+                Enter the 6-digit code shown on your car's display
+            </p>
+            
+            <div class="code-input">
+                <input type="number" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="number" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="number" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="number" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="number" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
+                <input type="number" class="code-digit" maxlength="1" pattern="[0-9]" inputmode="numeric">
+            </div>
+            
+            <button class="connect-btn" id="connectBtn" disabled>Connect</button>
+            <div id="status"></div>
+        </div>
+        
+        <div class="phone-interface" id="phoneInterface">
+            <div class="tabs">
+                <button class="tab active" data-tab="contacts">Contacts</button>
+                <button class="tab" data-tab="recent">Recent</button>
+                <button class="tab" data-tab="messages">Messages</button>
+            </div>
+            
+            <div class="tab-content" id="tabContent">
+                <!-- Content loads here -->
+            </div>
+            
+            <button class="disconnect-btn" id="disconnectBtn">Disconnect</button>
+        </div>
+    </div>
+    
+    <script>
+        const digits = document.querySelectorAll('.code-digit');
+        const connectBtn = document.getElementById('connectBtn');
+        const status = document.getElementById('status');
+        const pairingForm = document.getElementById('pairingForm');
+        const phoneInterface = document.getElementById('phoneInterface');
+        let ws = null;
+        
+        // Auto-advance to next digit
+        digits.forEach((digit, index) => {
+            digit.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < digits.length - 1) {
+                    digits[index + 1].focus();
+                }
+                checkCode();
+            });
+            
+            digit.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    digits[index - 1].focus();
+                }
+            });
+        });
+        
+        function checkCode() {
+            const code = Array.from(digits).map(d => d.value).join('');
+            connectBtn.disabled = code.length !== 6;
+        }
+        
+        connectBtn.addEventListener('click', async () => {
+            const code = Array.from(digits).map(d => d.value).join('');
+            
+            try {
+                const response = await fetch('/pair', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    status.innerHTML = '<div class="success">Connected!</div>';
+                    sessionStorage.setItem('sessionId', result.sessionId);
+                    connectWebSocket();
+                    
+                    setTimeout(() => {
+                        pairingForm.style.display = 'none';
+                        phoneInterface.style.display = 'block';
+                        loadContacts();
+                    }, 1000);
+                } else {
+                    status.innerHTML = '<div class="error">Invalid code. Please try again.</div>';
+                }
+            } catch (error) {
+                status.innerHTML = '<div class="error">Connection failed. Please try again.</div>';
+            }
+        });
+        
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleServerMessage(data);
+            };
+        }
+        
+        function handleServerMessage(data) {
+            // Handle messages from car
+        }
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                switch(tab.dataset.tab) {
+                    case 'contacts':
+                        loadContacts();
+                        break;
+                    case 'recent':
+                        loadRecent();
+                        break;
+                    case 'messages':
+                        loadMessages();
+                        break;
+                }
+            });
+        });
+        
+        function loadContacts() {
+            const tabContent = document.getElementById('tabContent');
+            tabContent.innerHTML = `
+                <h3>Contacts</h3>
+                <ul class="contact-list">
+                    <li class="contact-item">
+                        <span>Mom</span>
+                        <button class="call-btn" onclick="makeCall('Mom', '555-1234')">Call</button>
+                    </li>
+                    <li class="contact-item">
+                        <span>John</span>
+                        <button class="call-btn" onclick="makeCall('John', '555-5678')">Call</button>
+                    </li>
+                    <li class="contact-item">
+                        <span>Sarah</span>
+                        <button class="call-btn" onclick="makeCall('Sarah', '555-9012')">Call</button>
+                    </li>
+                </ul>
+            `;
+        }
+        
+        function loadRecent() {
+            const tabContent = document.getElementById('tabContent');
+            tabContent.innerHTML = `
+                <h3>Recent Calls</h3>
+                <ul class="call-log">
+                    <li class="call-item">
+                        <div>
+                            <div>Mom</div>
+                            <small>10 min ago - Incoming</small>
+                        </div>
+                        <button class="call-btn" onclick="makeCall('Mom', '555-1234')">Call</button>
+                    </li>
+                    <li class="call-item">
+                        <div>
+                            <div>John</div>
+                            <small>1 hour ago - Outgoing</small>
+                        </div>
+                        <button class="call-btn" onclick="makeCall('John', '555-5678')">Call</button>
+                    </li>
+                </ul>
+            `;
+        }
+        
+        function loadMessages() {
+            const tabContent = document.getElementById('tabContent');
+            tabContent.innerHTML = `
+                <h3>Messages</h3>
+                <ul class="message-list">
+                    <li class="message-thread" onclick="openChat('Mom')">
+                        <div><strong>Mom</strong></div>
+                        <div>Hey, are you coming for dinner?</div>
+                        <small>5:30 PM</small>
+                    </li>
+                    <li class="message-thread" onclick="openChat('John')">
+                        <div><strong>John</strong></div>
+                        <div>See you at the meeting</div>
+                        <small>2:15 PM</small>
+                    </li>
+                </ul>
+            `;
+        }
+        
+        function makeCall(name, number) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'make-call',
+                    name: name,
+                    number: number
+                }));
+                alert(`Calling ${name}...\\nCheck your car display`);
+            }
+        }
+        
+        function openChat(name) {
+            alert(`Opening chat with ${name}...\\nCheck your car display`);
+        }
+        
+        document.getElementById('disconnectBtn').addEventListener('click', () => {
+            if (ws) ws.close();
+            sessionStorage.removeItem('sessionId');
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>

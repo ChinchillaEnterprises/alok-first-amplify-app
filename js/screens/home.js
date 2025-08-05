@@ -102,7 +102,7 @@ class Car3DViewer {
         const isLightTheme = document.body.getAttribute('data-theme') === 'light';
         const groundGeometry = new THREE.PlaneGeometry(50, 50);
         const groundMaterial = new THREE.MeshStandardMaterial({ 
-            color: isLightTheme ? 0xe0e0e0 : 0x0a0a0a,
+            color: isLightTheme ? 0xf8f8f8 : 0x0a0a0a,
             roughness: 0.8,
             metalness: 0.2
         });
@@ -117,7 +117,7 @@ class Car3DViewer {
         const loader = new THREE.GLTFLoader();
         
         loader.load(
-            'assets/models/2020_audi_s5.glb',
+            '../assets/models/2020_audi_s5.glb',
             (gltf) => {
                 this.car = gltf.scene;
                 
@@ -352,7 +352,7 @@ class Car3DViewer {
             child.geometry && child.geometry.type === 'PlaneGeometry'
         );
         if (ground) {
-            ground.material.color.setHex(isLightTheme ? 0xe0e0e0 : 0x0a0a0a);
+            ground.material.color.setHex(isLightTheme ? 0xf8f8f8 : 0x0a0a0a);
         }
     }
 
