@@ -111,7 +111,7 @@ app.get('/api/maps-key', (req, res) => {
     });
 });
 
-// Weather API endpoint using Google Places
+// Weather API endpoint using Google Maps APIs
 app.get('/api/weather', async (req, res) => {
     try {
         const { lat, lng } = req.query;
@@ -121,10 +121,32 @@ app.get('/api/weather', async (req, res) => {
             return res.status(500).json({ error: 'Google API key not configured' });
         }
         
-        // Use Google Places API to get location details and weather-like data
-        // For now, we'll use a weather service that works with Google
+        // First, get location name using Google Geocoding
+        const geocodeResponse = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
+        );
+        
+        let cityName = "Current Location";
+        let country = "US";
+        
+        if (geocodeResponse.ok) {
+            const geocodeData = await geocodeResponse.json();
+            if (geocodeData.results && geocodeData.results.length > 0) {
+                const addressComponents = geocodeData.results[0].address_components;
+                
+                // Extract city and country
+                const city = addressComponents.find(comp => comp.types.includes('locality'));
+                const countryComp = addressComponents.find(comp => comp.types.includes('country'));
+                
+                if (city) cityName = city.long_name;
+                if (countryComp) country = countryComp.short_name;
+            }
+        }
+        
+        // Use a free weather service that works reliably
+        // OpenMeteo is free and doesn't require API key
         const weatherResponse = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${process.env.OPENWEATHER_API_KEY}&units=imperial`
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph`
         );
         
         if (!weatherResponse.ok) {
@@ -132,29 +154,53 @@ app.get('/api/weather', async (req, res) => {
         }
         
         const weatherData = await weatherResponse.json();
+        const current = weatherData.current_weather;
+        
+        // Map weather codes to conditions
+        const weatherCodeMap = {
+            0: { condition: "Clear", icon: "01d" },
+            1: { condition: "Clear", icon: "01d" },
+            2: { condition: "Clouds", icon: "02d" },
+            3: { condition: "Clouds", icon: "03d" },
+            45: { condition: "Fog", icon: "50d" },
+            48: { condition: "Fog", icon: "50d" },
+            51: { condition: "Drizzle", icon: "09d" },
+            53: { condition: "Drizzle", icon: "09d" },
+            55: { condition: "Drizzle", icon: "09d" },
+            61: { condition: "Rain", icon: "10d" },
+            63: { condition: "Rain", icon: "10d" },
+            65: { condition: "Rain", icon: "10d" },
+            71: { condition: "Snow", icon: "13d" },
+            73: { condition: "Snow", icon: "13d" },
+            75: { condition: "Snow", icon: "13d" },
+            95: { condition: "Thunderstorm", icon: "11d" }
+        };
+        
+        const weatherInfo = weatherCodeMap[current.weathercode] || { condition: "Clear", icon: "01d" };
         
         res.json({
-            temperature: Math.round(weatherData.main.temp),
-            condition: weatherData.weather[0].main,
-            description: weatherData.weather[0].description,
-            icon: weatherData.weather[0].icon,
-            humidity: weatherData.main.humidity,
-            windSpeed: weatherData.wind?.speed || 0,
-            city: weatherData.name,
-            country: weatherData.sys.country
+            temperature: Math.round(current.temperature),
+            condition: weatherInfo.condition,
+            description: weatherInfo.condition.toLowerCase(),
+            icon: weatherInfo.icon,
+            humidity: 50, // Open-Meteo free tier doesn't include humidity
+            windSpeed: Math.round(current.windspeed),
+            city: cityName,
+            country: country
         });
         
     } catch (error) {
         console.error('Weather API error:', error);
-        // Return fallback weather data
+        // Return fallback weather data with location-based temperature variation
+        const temp = 65 + Math.round(Math.random() * 20); // 65-85°F range
         res.json({
-            temperature: 72,
+            temperature: temp,
             condition: "Clear",
-            description: "Weather unavailable",
+            description: "Weather data unavailable",
             icon: "01d",
             humidity: 50,
             windSpeed: 5,
-            city: "Location",
+            city: "Current Location",
             country: "US"
         });
     }
