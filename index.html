@@ -149,7 +149,10 @@
                 <i class="fas fa-signal"></i>
                 <i class="fas fa-bluetooth"></i>
                 <i class="fas fa-wifi"></i>
-                <span class="temp">72°F</span>
+                <div class="weather-info">
+                    <i class="fas fa-sun weather-icon" data-weather-icon="01d"></i>
+                    <span class="temp" data-weather="temperature">72°F</span>
+                </div>
             </div>
         </header>
 
@@ -662,6 +665,7 @@
         </nav>
     </div>
 
+    <script src="js/services/weather-service.js"></script>
     <script src="js/core/app.js"></script>
     <script src="js/screens/home.js"></script>
     <script src="js/screens/navigation.js"></script>
@@ -833,6 +837,30 @@
                 startupOverlay.remove();
             }, 1000);
         }, 4000); // Show animation for 4 seconds
+    </script>
+    
+    <!-- Weather Update Handler -->
+    <script>
+        // Handle weather updates
+        document.addEventListener('weatherUpdated', (event) => {
+            const weather = event.detail;
+            
+            // Update weather icon based on condition
+            const weatherIcon = document.querySelector('.weather-icon');
+            if (weatherIcon && window.weatherService) {
+                const iconClass = window.weatherService.getWeatherIcon(weather.icon);
+                weatherIcon.className = `weather-icon ${iconClass}`;
+            }
+            
+            console.log('Weather UI updated:', weather);
+        });
+        
+        // Manual weather refresh function (can be called from settings or voice commands)
+        window.refreshWeather = function() {
+            if (window.weatherService) {
+                window.weatherService.refreshWeather();
+            }
+        };
     </script>
 </body>
 </html>

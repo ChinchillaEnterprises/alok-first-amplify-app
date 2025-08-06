@@ -244,6 +244,50 @@ body[data-theme="light"] .car-outline {
     font-weight: 500;
 }
 
+/* Weather Info Styling */
+.weather-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weather-icon {
+    font-size: 18px;
+    color: #ffc107;
+    transition: color 0.3s ease;
+}
+
+.weather-icon.fa-sun {
+    color: #ffc107;
+}
+
+.weather-icon.fa-moon {
+    color: #6c757d;
+}
+
+.weather-icon.fa-cloud,
+.weather-icon.fa-clouds {
+    color: #adb5bd;
+}
+
+.weather-icon.fa-cloud-rain,
+.weather-icon.fa-cloud-sun-rain,
+.weather-icon.fa-cloud-moon-rain {
+    color: #17a2b8;
+}
+
+.weather-icon.fa-bolt {
+    color: #ffc107;
+}
+
+.weather-icon.fa-snowflake {
+    color: #e9ecef;
+}
+
+.weather-icon.fa-smog {
+    color: #6c757d;
+}
+
 .main-content {
     flex: 1;
     display: flex;
