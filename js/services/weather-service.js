@@ -76,22 +76,20 @@ class WeatherService {
     
     async fetchWeatherData(latitude, longitude) {
         try {
-            // TODO: Replace with actual Amplify API call once backend is deployed
-            // For now, use a mock response or fallback API
+            // Use your existing backend server for weather data
+            const response = await fetch(`http://localhost:3001/api/weather?lat=${latitude}&lng=${longitude}`);
             
-            // This will be replaced with:
-            // const client = generateClient();
-            // const result = await client.queries.getWeather({
-            //     latitude: latitude,
-            //     longitude: longitude
-            // });
-            // return result.data;
+            if (!response.ok) {
+                throw new Error(`Weather API error: ${response.status}`);
+            }
             
-            return await this.getMockWeatherData(latitude, longitude);
+            const weatherData = await response.json();
+            return weatherData;
             
         } catch (error) {
             console.error('Weather API error:', error);
-            throw error;
+            // Fallback to mock data if backend is not available
+            return await this.getMockWeatherData(latitude, longitude);
         }
     }
     

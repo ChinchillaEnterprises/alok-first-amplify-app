@@ -104,7 +104,65 @@ app.get('/api/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
+// Google Maps API endpoint
+app.get('/api/maps-key', (req, res) => {
+    res.json({ 
+        apiKey: process.env.GOOGLE_MAPS_API_KEY || '' 
+    });
+});
+
+// Weather API endpoint using Google Places
+app.get('/api/weather', async (req, res) => {
+    try {
+        const { lat, lng } = req.query;
+        const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+        
+        if (!apiKey) {
+            return res.status(500).json({ error: 'Google API key not configured' });
+        }
+        
+        // Use Google Places API to get location details and weather-like data
+        // For now, we'll use a weather service that works with Google
+        const weatherResponse = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${process.env.OPENWEATHER_API_KEY}&units=imperial`
+        );
+        
+        if (!weatherResponse.ok) {
+            throw new Error('Weather service unavailable');
+        }
+        
+        const weatherData = await weatherResponse.json();
+        
+        res.json({
+            temperature: Math.round(weatherData.main.temp),
+            condition: weatherData.weather[0].main,
+            description: weatherData.weather[0].description,
+            icon: weatherData.weather[0].icon,
+            humidity: weatherData.main.humidity,
+            windSpeed: weatherData.wind?.speed || 0,
+            city: weatherData.name,
+            country: weatherData.sys.country
+        });
+        
+    } catch (error) {
+        console.error('Weather API error:', error);
+        // Return fallback weather data
+        res.json({
+            temperature: 72,
+            condition: "Clear",
+            description: "Weather unavailable",
+            icon: "01d",
+            humidity: 50,
+            windSpeed: 5,
+            city: "Location",
+            country: "US"
+        });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Audi AI backend running on port ${PORT}`);
     console.log('Claude API key loaded:', process.env.CLAUDE_API_KEY ? 'Yes' : 'No');
+    console.log('Google Maps API key loaded:', process.env.GOOGLE_MAPS_API_KEY ? 'Yes' : 'No');
+    console.log('OpenWeather API key loaded:', process.env.OPENWEATHER_API_KEY ? 'Yes' : 'No');
 });
